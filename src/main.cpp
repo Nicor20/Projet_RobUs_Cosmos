@@ -12,6 +12,8 @@ Inclure les librairies de functions que vous voulez utiliser
 
 #include <LibRobus.h> // Essentielle pour utiliser RobUS
 #include <Arduino.h>
+#include <string.h>
+#include <stdio.h>
 /* ****************************************************************************
 Variables globales et defines
 **************************************************************************** */
@@ -142,11 +144,89 @@ void robus_Avance(float vitesse, uint32_t setpoint, uint32_t distance)
 
 void robus_Tourne(float vitesse, uint32_t setpoint, uint32_t angle)
 {
+  /*
     uint32_t angleParcouru = 0;
 
       MOTOR_SetSpeed(LEFT, vitesse);
       MOTOR_SetSpeed(RIGHT, -(vitesse + 0.01));
+      */
 }
+
+void Lecture_Path(char path[])
+{
+  int i=0;
+  int y=2;
+  int a;
+  char valeur[100];
+
+  while(path[i] != '\0')
+  {
+    if(path[i] == '/')
+    { 
+      if(path[y-2] == 'A'||path[y-2] == 'D'||path[y-2] == 'G'||path[y-2] == 'R')
+      {
+        if(path[y-1] == ' ')
+        {
+          int True = 1;
+          for(a = y ; a < i ; a++)
+          {
+            if(path[a] == '0'||path[a] == '1'||path[a] == '2'||path[a] == '3'||path[a] == '4'||path[a] == '5'||path[a] == '6'||path[a] == '7'||path[a] == '8'||path[a] == '9'||path[a] == ',')
+            {
+              valeur[a-y] = path[a];
+            }
+            else
+            {
+              True = 0;
+              break;
+            } 
+          }
+          valeur[a-y] = '\0';
+
+          if(True == 1)
+          {
+            if(path[y-2] == 'A')
+            {
+              Serial.print("Avance : ");
+              Serial.println(valeur);
+            }
+            else if(path[y-2] == 'D')
+            {
+              Serial.print("Tourne a droit : ");
+              Serial.println(valeur);
+            }
+            else if(path[y-2] == 'G')
+            {
+              Serial.print("Tourne a gauche : ");
+              Serial.println(valeur);
+            }
+            else
+            {
+              Serial.print("Recule : ");
+              Serial.println(valeur);
+            }
+          }
+          else
+          {
+            Serial.println("Erreur : format valide 10 ou 10,21");
+          }
+        }
+        else
+        {
+          Serial.println("Erreur : le second caractère n'est pas un espace");
+        }
+      }
+      else
+      {
+        Serial.println("Erreur : ne commence pas par A ou D ou G ou R");
+      }
+            
+      y=i+3;
+    }
+    i++;
+  }
+}
+
+
 
 
 /* ****************************************************************************
@@ -156,18 +236,27 @@ Fonctions d'initialisation (setup)
 // -> Se fait appeler seulement un fois
 // -> Generalement on y initilise les variables globales
 
-void setup(){
-
+void setup()
+{
   Serial.begin(9600);
+  //A = Avancer
+  //D = Tourner à droit
+  //G = Tourner à gauche
+  //R = Reculer
+  char path[] = "A 50/D 45/G 40/R 160/Allo/";
+  Lecture_Path(path);
+
+
+  /*
   delay(1000);
   BoardInit();
   delay(1500);
 
   robus_Avance(0.30, 350, 1000000);
 
-  //MOTOR_SetSpeed(LEFT, 0.30);
-  //MOTOR_SetSpeed(RIGHT, 0.309);
-
+  MOTOR_SetSpeed(LEFT, 0.30);
+  MOTOR_SetSpeed(RIGHT, 0.309);
+  */
 }
 
 /* ****************************************************************************
