@@ -162,7 +162,7 @@ void Lecture_Chemin(char path[])
   {
     if(path[i] == '/')
     { 
-      if(path[y-2] == 'A'||path[y-2] == 'D'||path[y-2] == 'G'||path[y-2] == 'R')
+      if(path[y-2] == 'a'||path[y-2] == 'd'||path[y-2] == 'g'||path[y-2] == 'r'||path[y-2] == 'x'||path[y-2] == 'y')
       {
         if(path[y-1] == ' ')
         {
@@ -185,23 +185,39 @@ void Lecture_Chemin(char path[])
           {
             float value = (float)atof(valeur);
 
-            if(path[y-2] == 'A')
+            if(path[y-2] == 'a')
             {
+              //Pour avancer
               Serial.print("Avance : ");
               Serial.println(value);
             }
-            else if(path[y-2] == 'D')
+            else if(path[y-2] == 'd')
             {
+              //Pour tourner a droite avec une roue
               Serial.print("Tourne a droit : ");
               Serial.println(value);
             }
-            else if(path[y-2] == 'G')
+            else if(path[y-2] == 'g')
             {
+              //Pour tourner a gauche avec une roue
               Serial.print("Tourne a gauche : ");
               Serial.println(value);
             }
-            else
+            else if(path[y-2] == 'x')
             {
+              //Pour tourner a droite avec deux roues
+              Serial.print("U turn a droit : ");
+              Serial.println(value);
+            }
+            else if(path[y-2] == 'y')
+            {
+              //Pour tourner a gauche avec deux roues
+              Serial.print("U turn a gauche : ");
+              Serial.println(value);
+            }
+            else
+            {  
+              //Pour reculer
               Serial.print("Recule : ");
               Serial.println(value);
             }
@@ -218,7 +234,7 @@ void Lecture_Chemin(char path[])
       }
       else
       {
-        Serial.println("Erreur : ne commence pas par A ou D ou G ou R");
+        Serial.println("Erreur : ne commence pas par a-d-g-r-x-y");
       }    
       y=i+3;
     }
@@ -239,12 +255,14 @@ Fonctions d'initialisation (setup)
 void setup()
 {
   Serial.begin(9600);
-  //A = Avancer (en cm)
-  //D = Tourner à droit (en °)
-  //G = Tourner à gauche (en °)
-  //R = Reculer (en cm)
+  //a = Avancer (en cm)
+  //d = Tourner à droit (en °)
+  //g = Tourner à gauche (en °)
+  //r = Reculer (en cm)
+  //x = Uturn droit
+  //y = uturn gauche
 
-  char path[] = "A 50/D 45/G 40.5/R 160/";
+  char path[] = "a 50/d 45/g 40.5/r 160/x 45/y 45/";
   Lecture_Chemin(path);
 
 
