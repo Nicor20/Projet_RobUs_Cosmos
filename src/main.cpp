@@ -182,7 +182,7 @@ uint32_t conversionDistancePulse(float centimetre)
   return (int)distance;
 }
 
-//fonction d'appellation des directions (Mrs N)
+//fonction d'appellation des directions (Nico)
 void Lecture_Chemin(char path[])
 {
   int i=0;
@@ -221,37 +221,27 @@ void Lecture_Chemin(char path[])
         }
         else if(path[y-2] == 'd' || path[y-2] == 'D')
         {
-          //Pour tourner a droite avec une roue
+          //Pour tourner a droite avec 2 roues
           Serial.print("Tourne a droit : ");
           Serial.println(value);
           robus_TourneDroite(0.30, value);
         }
         else if(path[y-2] == 'g'||path[y-2] == 'G')
         {
-          //Pour tourner a gauche avec une roue
+          //Pour tourner a gauche avec 2 roues
           Serial.print("Tourne a gauche : ");
           Serial.println(value);
           robus_TourneGauche(0.30, value);
         }
         else if(path[y-2] == 'r'||path[y-2] == 'R')
         {
-          
-        }
-        else if(path[y-2] == 'x'||path[y-2] == 'X')
-        {
-          //Pour tourner a droite avec deux roues
-          Serial.print("U turn a droit : ");
-          Serial.println(value);
-        }
-        else if(path[y-2] == 'y'||path[y-2] == 'Y')
-        {
-          //Pour tourner a gauche avec deux roues
-          Serial.print("U turn a gauche : ");
+          //Pour reculer
+          Serial.print("Recule : ");
           Serial.println(value);
         }
         else
         {
-          Serial.println("Erreur : ne commence pas par (a-A),(d-D),(g-G),(r-R),(x-X),(y-Y)");
+          Serial.println("Erreur : ne commence pas par (a-A),(d-D),(g-G),(r-R)");
         }
         
       }
@@ -282,10 +272,8 @@ void setup(){
   //d = Tourner à droit (en °)
   //g = Tourner à gauche (en °)
   //r = Reculer (en cm)
-  //x = Uturn droit
-  //y = uturn gauche
 
-  char path[] = "a 50/d 45/g 40.5/r 160/x 45/y 45/";
+  char path[] = "a 50/d 45/g 40.5/";
   //Lecture_Chemin(path);
   delay(1000);
   BoardInit();
