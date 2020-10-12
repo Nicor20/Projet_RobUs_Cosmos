@@ -31,6 +31,16 @@ int32_t cycleCount = 0;
 float speed_Left = 0.30;
 float speed_Right = 0.31;
 
+
+float correctionPID(uint8_t motorSelect, uint32_t setpoint);
+void updateSpeed(uint32_t setpoint);
+void robus_Avance(float vitesse, uint32_t setpoint, uint32_t distance);
+void robus_TourneGauche(float vitesse, float angle);
+void robus_TourneDroite(float vitesse, float angle);
+uint32_t conversionDistancePulse(float centimetre);
+void Chemin2(char action[25],char mesure[25][15]);
+void ConversionChemin(char path[]);
+
 /* ****************************************************************************
 Vos propres fonctions sont creees ici
 **************************************************************************** */
@@ -64,6 +74,7 @@ float correctionPID(uint8_t motorSelect, uint32_t setpoint)
     return (errorP + errorI);
   }
 }
+
 
 void updateSpeed(uint32_t setpoint)
 {
@@ -117,12 +128,10 @@ void robus_Avance(float vitesse, uint32_t setpoint, uint32_t distance)
 //Fonction tourner à gauche où on met l'angle en degré
 void robus_TourneGauche(float vitesse, float angle)
 {
-
   uint32_t angleParcouru = 0;
-  float temp;
   angle = (angle / 360)*120.64;
-  temp = angle;
-  angle = conversionDistancePulse(temp);
+
+  angle = conversionDistancePulse(angle);
 
   MOTOR_SetSpeed(RIGHT, vitesse);
   MOTOR_SetSpeed(LEFT, 0);
@@ -147,10 +156,8 @@ void robus_TourneGauche(float vitesse, float angle)
 void robus_TourneDroite(float vitesse, float angle)
 {
   uint32_t angleParcouru = 0;
-  float temp;
   angle = (angle / 360)*120.64;
-  temp = angle;
-  angle = conversionDistancePulse(temp);
+  angle = conversionDistancePulse(angle);
 
   MOTOR_SetSpeed(LEFT, vitesse);
   MOTOR_SetSpeed(RIGHT, 0);
@@ -182,24 +189,68 @@ uint32_t conversionDistancePulse(float centimetre)
   return (int)distance;
 }
 
-//fonction d'appellation des directions (Nico)
-void Lecture_Chemin(char path[])
+void Chemin_Maker(char action[25],char mesure[25][15])
 {
   int i=0;
-  int y=2;
-  int a;
-  char valeur[100];
-
-  while(path[i] != '\0')
+  while(action[i]!='\0')
   {
-    if(path[i] == '/')
+    char test[15];
+
+    int a=0;
+    while(mesure[i][a]!='\0')
+    {
+      test[a] = mesure[i][a];
+      a++;
+    }
+    test[a] ='\0';
+
+    float value = (float)atof(test);
+
+    if(action[i] == 'a')
+    {
+      //Pour avancer
+      robus_Avance(0.30, 350,conversionDistancePulse(value));
+    }
+    else if(action[i] == 'd')
+    {
+      //Pour tourner a droite avec 2 roues
+      robus_TourneDroite(0.30, value);
+    }
+    else if(action[i] == 'g')
+    {
+      //Pour tourner a gauche avec 2 roues
+      robus_TourneGauche(0.30, value);
+    }
+    else
+    {
+      //Pour reculer
+    }
+    i++;
+  }
+}
+
+void ConversionChemin(char path[])
+{
+  int debut = 0;
+  int fin = 0;
+  int compteur = 0;
+
+  char test[15];
+  char Action[25] = {0};
+  char valeur[25][15] = {0};
+
+
+  while(path[fin] != '\0')
+  {
+    if(path[fin] == '/')
     { 
       int True = 1;
-      for(a = y ; a < i ; a++)
+      int a;
+      for(a = debut+2 ; a < fin ; a++)
       {
         if(path[a] == '0'||path[a] == '1'||path[a] == '2'||path[a] == '3'||path[a] == '4'||path[a] == '5'||path[a] == '6'||path[a] == '7'||path[a] == '8'||path[a] == '9'||path[a] == '.')
         {
-          valeur[a-y] = path[a];
+          test[a-(debut+2)] = path[a];
         }
         else
         {
@@ -207,53 +258,127 @@ void Lecture_Chemin(char path[])
           break;
         } 
       }
-      valeur[a-y] = '\0';
+      test[a-(debut+2)] = '\0';
 
-      if(True == 1 && path[y-1] == ' ')
+      if(True == 1 && path[debut+1] == ' ')
       {
-        float value = (float)atof(valeur);
-        if(path[y-2] == 'a' || path[y-2] == 'A')
+        int vrais = 0;
+        float value = (float)atof(test);
+
+        if(path[debut] == 'a'||path[debut] == 'A')
         {
-          //Pour avancer
           Serial.print("Avance : ");
           Serial.println(value);
-          robus_Avance(0.30, 350,conversionDistancePulse(value));
+          Action[compteur]='a';
+          vrais = 1;
         }
-        else if(path[y-2] == 'd' || path[y-2] == 'D')
+        else if(path[debut] == 'd'||path[debut] == 'D')
         {
-          //Pour tourner a droite avec 2 roues
           Serial.print("Tourne a droit : ");
           Serial.println(value);
-          robus_TourneDroite(0.30, value);
+          Action[compteur]='d';
+          vrais = 1;
         }
-        else if(path[y-2] == 'g'||path[y-2] == 'G')
+        else if(path[debut] == 'g'||path[debut] == 'G')
         {
-          //Pour tourner a gauche avec 2 roues
           Serial.print("Tourne a gauche : ");
           Serial.println(value);
-          robus_TourneGauche(0.30, value);
+          Action[compteur]='g';
+          vrais = 1;
         }
-        else if(path[y-2] == 'r'||path[y-2] == 'R')
+        else if(path[debut] == 'r'||path[debut] == 'R')
         {
-          //Pour reculer
           Serial.print("Recule : ");
           Serial.println(value);
+          Action[compteur]='r';
+          vrais = 1;
         }
         else
         {
           Serial.println("Erreur : ne commence pas par (a-A),(d-D),(g-G),(r-R)");
         }
-        
+
+        if(vrais == 1)
+        {
+          int i=0;
+          while(test[i] != '\0')
+          {
+            valeur[compteur][i] = test[i];
+            i++;
+          }
+          valeur[compteur][i] ='\0';
+          compteur++;
+        }
+
       }
       else
       {
-        Serial.println("Erreur : LA valeur n'est pas valide ou le caractere #2 n'est pas un espace");
-      } 
-      y=i+3;
+        Serial.println("Erreur : La valeur n'est pas valide ou le caractere #2 n'est pas un espace");
+      }
+      debut = fin+1;
     }
-    i++;
+    fin++;
   }
+
+  Action[compteur]='d';
+  valeur[compteur][0]='1';
+  valeur[compteur][1]='8';
+  valeur[compteur][2]='0';
+  valeur[compteur][3]='\0';
+
+  int pos2=compteur+1;
+
+  for(int i = (compteur-1);i>=0;i--)
+  {
+    if(Action[i] == 'd')
+    {
+      Action[pos2] = 'g';
+    }
+    else if(Action[i] == 'g')
+    {
+      Action[pos2] = 'd';
+    }
+    else
+    {
+      Action[pos2] = Action[i];
+    }
+
+    int a = 0;
+    while(valeur[i][a] != '\0')
+    {
+      valeur[pos2][a] = valeur[i][a];
+      a++;
+    }
+    valeur[pos2][a] ='\0';
+    pos2++;
+  }
+  Action[pos2] = '\0';
+
+
+/*
+  int z = 0;
+  while(Action[z] != '\0')
+  {
+    Serial.print(Action[z]);
+    Serial.print(" : ");
+
+    int i=0;
+    char Affich[15];
+    while(valeur[z][i]!='\0')
+    {
+      Affich[i]=valeur[z][i];
+      i++;
+    }
+    Affich[i]='\0';
+
+    Serial.println((float)atof(Affich));
+    z++;
+  }
+*/
+
+  Chemin_Maker(Action,valeur);
 }
+
 
 /* ****************************************************************************
 Fonctions d'initialisation (setup)
@@ -265,44 +390,21 @@ Fonctions d'initialisation (setup)
 void setup(){
 
   //variables
-  uint32_t i = 100000;
-
+  //uint32_t i = 100000;
   Serial.begin(9600);
+  delay(1000);
+  BoardInit();
+  
   //a = Avancer (en cm)
   //d = Tourner à droit (en °)
   //g = Tourner à gauche (en °)
   //r = Reculer (en cm)
 
-  char path[] = "a 50/d 45/g 40.5/";
-  //Lecture_Chemin(path);
-  delay(1000);
-  BoardInit();
+  char path[] = "a 50/g 90/d 50/a 30/";
+  ConversionChemin(path);
+
+
   delay(1500);
-
-//Parcours
-  robus_Avance(0.30, 350,conversionDistancePulse(110));
-    delay(1000);
-  robus_TourneGauche(0.30, 88);
-    delay(1000);
-  robus_Avance(0.30, 350,conversionDistancePulse(68));
-    delay(1000);
-  robus_TourneDroite(0.30, 88);
-    delay(1000);
-  robus_Avance(0.30, 350,conversionDistancePulse(85));
-    delay(1000);
-  robus_TourneDroite(0.30, 39);
-    delay(1000);
-  robus_Avance(0.30, 350,conversionDistancePulse(175));
-    delay(1000);
-  robus_TourneGauche(0.30, 90);
-  delay(1000);
- robus_Avance(0.30, 350, conversionDistancePulse(60));
-  delay(1000);
-   robus_TourneDroite(0.30, 45);
-   delay(1000);
-   robus_Avance(0.30, 350, conversionDistancePulse(95));
-  robus_TourneDroite(0.30, conversionDistancePulse(180));
-
 }
 
 /* ****************************************************************************
