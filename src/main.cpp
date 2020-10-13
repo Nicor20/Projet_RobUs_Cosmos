@@ -35,12 +35,12 @@ float speed_Right = 0.31;
 
 float correctionPID(uint8_t motorSelect, uint32_t setpoint);
 void updateSpeed(uint32_t setpoint);
-void robus_Avance(float vitesse, uint32_t setpoint, uint32_t distance);
+void robus_Avance(float distance);
 void robus_TourneGauche(float vitesse, float angle);
 void robus_TourneDroite(float vitesse, float angle);
 uint32_t conversionDistancePulse(float centimetre);
-void Chemin2(char action[NB_ACTION],char mesure[NB_ACTION][15]);
-void ConversionChemin(char path[]);
+void Chemin_Maker(char action[NB_ACTION],char mesure[NB_ACTION][15]);
+void ConversionChemin(char path[],bool Aller_Retour);
 
 /* ****************************************************************************
 Vos propres fonctions sont creees ici
@@ -102,25 +102,42 @@ void updateSpeed(uint32_t setpoint)
 }
 
 //Fonction avancé. Set point sert au PID
-void robus_Avance(float vitesse, uint32_t setpoint, uint32_t distance)
+void robus_Avance(float distance)
 {
- 
-  uint32_t distanceParcourue = 0;
-
-  MOTOR_SetSpeed(LEFT, vitesse);
-  MOTOR_SetSpeed(RIGHT, vitesse + 0.01);
-  delay(50);
+  int32_t distanceParcourue = 0;
+  int32_t  pulse = conversionDistancePulse(distance);
 
   ENCODER_Reset(LEFT);
   ENCODER_Reset(RIGHT);
+
+  float Vitesse = 0;
+  float Vitesse_min = 200;
+  float Vitesse_max = 1000;
+
+  float h = pulse/2.0;
+  float k = ((distance * 2)>Vitesse_max ? Vitesse_max : (distance * 2));
+  float a = -k/(h*h);
+  float x;
+  
+  
   //Boucle qui fait avancer le robot tant que la distance parcourue ne dépasse pas la distance voulue
-  while(distanceParcourue < distance)
+  while(distanceParcourue < pulse)
   {
-    delay(100);
-    updateSpeed(setpoint);//PID
+    x= distanceParcourue;
+    Vitesse = a*((x-h)*(x-h))+k;
+
+    updateSpeed((Vitesse < Vitesse_min ? Vitesse_min : Vitesse));
+    Serial.println(Vitesse);
     distanceParcourue += encoderRead_Left;
-    Serial.println(distanceParcourue);
+    delay(100);
   }
+
+  speed_Left = 0.00;
+  speed_Right = 0.01;
+  cycleCount = 0;
+  encoderTotal_Left = 0;
+  encoderTotal_Right = 0;
+  encoderRead_Left = 0;
 
   MOTOR_SetSpeed(LEFT, 0);
   MOTOR_SetSpeed(RIGHT, 0);
@@ -182,12 +199,7 @@ void robus_TourneDroite(float vitesse, float angle)
 //fonctio nqui traduit une distance en cm en pulses pour que ROBUS comprenne
 uint32_t conversionDistancePulse(float centimetre)
 {
-  float distance = 0;
-
-  distance = (centimetre * 3200);
-  distance = distance / 23.939;
-
-  return (int)distance;
+  return (int)((centimetre * 3200)/ 23.939);
 }
 
 //Fonction pour la transmission des commandes(Nico)
@@ -211,7 +223,7 @@ void Chemin_Maker(char action[NB_ACTION],char mesure[NB_ACTION][15])
     if(action[i] == 'a')
     {
       //Pour avancer
-      robus_Avance(0.30, 350,conversionDistancePulse(value));
+      robus_Avance(0.50, 500,conversionDistancePulse(value));
     }
     else if(action[i] == 'd')
     {
@@ -223,6 +235,10 @@ void Chemin_Maker(char action[NB_ACTION],char mesure[NB_ACTION][15])
       //Pour tourner a gauche avec 2 roues
       robus_TourneGauche(0.30, value);
     }
+    else if(action[i] == 'u')
+    {
+      //Pour faire un U turn
+    }
     else
     {
       //Pour reculer
@@ -232,12 +248,12 @@ void Chemin_Maker(char action[NB_ACTION],char mesure[NB_ACTION][15])
 }
 
 //Fonction pour la lecture du chemin(Nico)
-void ConversionChemin(char path[])
+void ConversionChemin(char path[],bool Aller_Retour)
 {
   int debut = 0;
   int fin = 0;
   int compteur = 0;
-
+  
   char test[15];
   char Action[NB_ACTION] = {0};
   char valeur[NB_ACTION][15] = {0};
@@ -246,7 +262,7 @@ void ConversionChemin(char path[])
   {
     if(path[fin] == '/')
     { 
-      int True = 1;
+      bool valid = true;
       int a;
       for(a = debut+2 ; a < fin ; a++)
       {
@@ -256,15 +272,15 @@ void ConversionChemin(char path[])
         }
         else
         {
-          True = 0;
+          valid = false;
           break;
         } 
       }
       test[a-(debut+2)] = '\0';
 
-      if(True == 1 && path[debut+1] == ' ')
+      if(valid == true && path[debut+1] == ' ')
       {
-        int vrais = 0;
+        bool check = false;
         float value = (float)atof(test);
 
         if(path[debut] == 'a'|| path[debut] == 'A')
@@ -272,35 +288,35 @@ void ConversionChemin(char path[])
           Serial.print("Avance : ");
           Serial.println(value);
           Action[compteur]='a';
-          vrais = 1;
+          check = true;
         }
         else if(path[debut] == 'd'|| path[debut] == 'D')
         {
           Serial.print("Tourne a droit : ");
           Serial.println(value);
           Action[compteur]='d';
-          vrais = 1;
+          check = true;
         }
         else if(path[debut] == 'g'|| path[debut] == 'G')
         {
           Serial.print("Tourne a gauche : ");
           Serial.println(value);
           Action[compteur]='g';
-          vrais = 1;
+          check = true;
         }
         else if(path[debut] == 'r'|| path[debut] == 'R')
         {
           Serial.print("Recule : ");
           Serial.println(value);
           Action[compteur]='r';
-          vrais = 1;
+          check = true;
         }
         else
         {
           Serial.println("Erreur : ne commence pas par (a-A),(d-D),(g-G),(r-R)");
         }
 
-        if(vrais == 1)
+        if(check == true)
         {
           int i=0;
           while(test[i] != '\0')
@@ -320,39 +336,43 @@ void ConversionChemin(char path[])
     }
     fin++;
   }
-
-  Action[compteur]='d';
-  valeur[compteur][0]='1';
-  valeur[compteur][1]='8';
-  valeur[compteur][2]='0';
-  valeur[compteur][3]='\0';
-
+  
   int pos2=compteur+1;
 
-  for(int i = (compteur-1);i>=0;i--)
+  if(Aller_Retour == true)
   {
-    if(Action[i] == 'd')
-    {
-      Action[pos2] = 'g';
-    }
-    else if(Action[i] == 'g')
-    {
-      Action[pos2] = 'd';
-    }
-    else
-    {
-      Action[pos2] = Action[i];
-    }
+    Action[compteur]='u';
+    valeur[compteur][0]='1';
+    valeur[compteur][1]='8';
+    valeur[compteur][2]='0';
+    valeur[compteur][3]='\0';
 
-    int a = 0;
-    while(valeur[i][a] != '\0')
+    for(int i = (compteur-1);i>=0;i--)
     {
-      valeur[pos2][a] = valeur[i][a];
-      a++;
+      if(Action[i] == 'd')
+      {
+        Action[pos2] = 'g';
+      }
+      else if(Action[i] == 'g')
+      {
+        Action[pos2] = 'd';
+      }
+      else
+      {
+        Action[pos2] = Action[i];
+      }
+
+      int a = 0;
+      while(valeur[i][a] != '\0')
+      {
+        valeur[pos2][a] = valeur[i][a];
+        a++;
+      }
+      valeur[pos2][a] ='\0';
+      pos2++;
     }
-    valeur[pos2][a] ='\0';
-    pos2++;
   }
+
   Action[pos2] = '\0';
 
   Serial.println("Fin conversion");
@@ -370,24 +390,21 @@ Fonctions d'initialisation (setup)
 // -> Se fait appeler seulement un fois
 // -> Generalement on y initilise les variables globales
 
-void setup(){
-
-  //variables
-  //uint32_t i = 100000;
-  Serial.begin(9600);
-  delay(1000);
-  BoardInit();
-  
-
+void setup()
+{
   //a = Avancer (en cm)
   //d = Tourner à droit (en °)
   //g = Tourner à gauche (en °)
   //r = Reculer (en cm)
   //Ne pas écrire le U turn dans la path
   //Terminer path par un /
-  char path[] = "a 50/g 90/d 50/a 30/";
-  ConversionChemin(path);
 
+  Serial.begin(9600);
+  delay(1000);
+  BoardInit();
+
+  char path[] = "a 100/";
+  ConversionChemin(path,true);
 
   delay(1500);
 }
