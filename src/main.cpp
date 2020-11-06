@@ -120,54 +120,47 @@ void robus_Avance(float distance)
   ENCODER_Reset(RIGHT);
 
   float Vitesse = 0;
-  float Vitesse_min = 300;
+  float Vitesse_min = 200;
   float Vitesse_max = 1000;
-  float multiplicateur = 6.0;
+
   float h = pulse/2.0;
-  float k = ((distance * multiplicateur)>Vitesse_max ? Vitesse_max : (distance * multiplicateur));
+  float k = ((distance * 2)>Vitesse_max ? Vitesse_max : (distance * 2));
   float a = -k/(h*h);
   float x;
+  
   
   //Boucle qui fait avancer le robot tant que la distance parcourue ne dépasse pas la distance voulue
   while(distanceParcourue < pulse)
   {
-    cycleCount = 0;
-    encoderTotal_Left = 0;
-    encoderTotal_Right = 0;
-    encoderRead_Left = 0;
-    encoderRead_Right = 0;
-
-    x = distanceParcourue;
+    x= distanceParcourue;
     Vitesse = a*((x-h)*(x-h))+k;
 
-    if(Vitesse < Vitesse_min)
-    {
-      updateSpeed(Vitesse_min);
-    }
-    else
-    {
-      updateSpeed(Vitesse);
-    }
-
+    updateSpeed((Vitesse < Vitesse_min ? Vitesse_min : Vitesse));
     Serial.println(Vitesse);
     distanceParcourue += encoderRead_Left;
     delay(100);
   }
 
-/*
+  speed_Left = 0.00;
+  speed_Right = 0.01;
+  cycleCount = 0;
+  encoderTotal_Left = 0;
+  encoderTotal_Right = 0;
+  encoderRead_Left = 0;
+
   MOTOR_SetSpeed(LEFT, 0);
   MOTOR_SetSpeed(RIGHT, 0);
-  */
 }
 
 //Fonction tourner à gauche où on met l'angle en degré
-void robus_TourneGauche(float angle)
+void robus_TourneGauche(float vitesse, float angle)
 {
   uint32_t angleParcouru = 0;
   angle = (angle / 360)*120.64;
 
   angle = conversionDistancePulse(angle);
 
+  MOTOR_SetSpeed(RIGHT, vitesse);
   MOTOR_SetSpeed(LEFT, 0);
 
   delay(50);
@@ -181,45 +174,30 @@ void robus_TourneGauche(float angle)
     angleParcouru += encoderRead_Right;
     Serial.println(angleParcouru);
   }
+<<<<<<< HEAD
 }
 
 void robus_Uturn()
 {
   int32_t angle = 3715;
 
+=======
+>>>>>>> parent of de16cbb... V9
   MOTOR_SetSpeed(LEFT, 0);
   MOTOR_SetSpeed(RIGHT, 0);
 
-  delay(500);
-  int32_t angleParcouru = 0;
-
-  MOTOR_SetSpeed(RIGHT, 0.3);
-  MOTOR_SetSpeed(LEFT, -0.3);
-
-  //delay(50);
-
-  ENCODER_Reset(LEFT);
-  ENCODER_Reset(RIGHT);
-  while(angleParcouru < angle)
-  {
-    delay(5);//Délai diminué pour une meilleure précision
-    encoderRead_Right = ENCODER_ReadReset(RIGHT);
-    angleParcouru += encoderRead_Right;
-    //Serial.println(angleParcouru);
-  }
-  MOTOR_SetSpeed(LEFT, 0);
-  MOTOR_SetSpeed(RIGHT, 0);
-  delay(500);
 }
 
-
 //Fonction pour tourner à droite avec l'angle en degré
-void robus_TourneDroite(float angle)
+void robus_TourneDroite(float vitesse, float angle)
 {
   uint32_t angleParcouru = 0;
   angle = (angle / 360)*120.64;
   angle = conversionDistancePulse(angle);
+
+  MOTOR_SetSpeed(LEFT, vitesse);
   MOTOR_SetSpeed(RIGHT, 0);
+
   delay(50);
 
   ENCODER_Reset(LEFT);
@@ -231,6 +209,9 @@ void robus_TourneDroite(float angle)
     angleParcouru += encoderRead_Left;
     Serial.println(angleParcouru);
   }
+  MOTOR_SetSpeed(LEFT, 0);
+  MOTOR_SetSpeed(RIGHT, 0);
+
 }
 
 //fonctio nqui traduit une distance en cm en pulses pour que ROBUS comprenne
@@ -260,31 +241,25 @@ void Chemin_Maker(char action[NB_ACTION],char mesure[NB_ACTION][15])
     if(action[i] == 'a')
     {
       //Pour avancer
-      robus_Avance(value);
+      robus_Avance(0.50, 500,conversionDistancePulse(value));
     }
     else if(action[i] == 'd')
     {
       //Pour tourner a droite avec 2 roues
-      robus_TourneDroite(value);
+      robus_TourneDroite(0.30, value);
     }
     else if(action[i] == 'g')
     {
       //Pour tourner a gauche avec 2 roues
-      robus_TourneGauche(value);
+      robus_TourneGauche(0.30, value);
     }
     else if(action[i] == 'u')
     {
       //Pour faire un U turn
-      robus_Uturn();
-    }
-    else if(action[i]=='r')
-    {
-      //Pour reculer
     }
     else
     {
-      MOTOR_SetSpeed(0,0);
-      MOTOR_SetSpeed(1,0);
+      //Pour reculer
     }
     i++;
   }
@@ -387,10 +362,11 @@ void ConversionChemin(char path[],bool Aller_Retour)
     fin++;
   }
   
-  int pos2=compteur;
+  int pos2=compteur+1;
 
   if(Aller_Retour == true)
   {
+<<<<<<< HEAD
     Action[pos2]='u';
     valeur[pos2][0]='1';
     valeur[pos2][1]='8';
@@ -399,6 +375,15 @@ void ConversionChemin(char path[],bool Aller_Retour)
     pos2++;
 
     for(int i = (pos2-2);i>=0;i--)
+=======
+    Action[compteur]='u';
+    valeur[compteur][0]='1';
+    valeur[compteur][1]='8';
+    valeur[compteur][2]='0';
+    valeur[compteur][3]='\0';
+
+    for(int i = (compteur-1);i>=0;i--)
+>>>>>>> parent of de16cbb... V9
     {
       if(Action[i] == 'd')
       {
@@ -423,12 +408,17 @@ void ConversionChemin(char path[],bool Aller_Retour)
       pos2++;
     }
   }
+<<<<<<< HEAD
   Action[pos2] = 'a';
   valeur[pos2][0] = '1';
   valeur[pos2][1] = '5';
   valeur[pos2][2] = '\0';
   Action[pos2+1]='s';
   Action[pos2+2] = '\0';
+=======
+
+  Action[pos2] = '\0';
+>>>>>>> parent of de16cbb... V9
 
   Serial.println("Fin conversion");
 
@@ -445,7 +435,6 @@ Fonctions d'initialisation (setup)
 // -> Se fait appeler seulement un fois
 // -> Generalement on y initilise les variables globales
 
-
 void setup()
 {
   //a = Avancer (en cm)
@@ -455,12 +444,15 @@ void setup()
   //u = Uturn
   //Ne pas écrire le U turn dans la path si true
   //Terminer path par un /
-  //82° pour 90°
-  //41° pour 45°
 
   Serial.begin(9600);
   delay(1000);
   BoardInit();
+
+  char path[] = "a 100/";
+  ConversionChemin(path,true);
+
+  delay(1500);
 }
 
 /* ****************************************************************************
@@ -468,6 +460,7 @@ Fonctions de boucle infini (loop())
 **************************************************************************** */
 // -> Se fait appeler perpetuellement suite au "setup"
 
+<<<<<<< HEAD
 void loop() 
 {
   /*
@@ -496,4 +489,14 @@ void loop()
         Serial.println(" )");
         colorSensor.clearInterrupt();
     }
+=======
+void loop() {
+  // SOFT_TIMER_Update(); // A decommenter pour utiliser des compteurs logiciels
+  delay(1000);
+
+  // encoderRead_Right = ENCODER_ReadReset(RIGHT);
+
+  // Serial.println(encoderRead_Right);
+  // Serial.println("");
+>>>>>>> parent of de16cbb... V9
 }
