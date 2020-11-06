@@ -5,7 +5,16 @@ Auteurs: Les membres auteurs du script
 Description: Breve description du script
 Date: Derniere date de modification
 */
+#include <Wire.h>
+#include<Adafruit_TCS34725.h>
+//#include <GroveColorSensor.h>
+//include <ChainableLED.h>
 
+#define CLK_PIN   7
+#define DATA_PIN  8
+#define NUM_LEDS  1            //The number of Chainable RGB LED
+
+//ChainableLED leds(CLK_PIN, DATA_PIN, NUM_LEDS);
 /* ****************************************************************************
 Inclure les librairies de functions que vous voulez utiliser
 **************************************************************************** */
@@ -20,7 +29,7 @@ Variables globales et defines
 #define SETPOINT_50_SPEED 554
 #define KP 0.0004
 #define KI 0.00002
-#define NB_ACTION 25
+#define NB_ACTION 45
 
 // L'ensemble des fonctions y ont acces
 int32_t encoderRead_Left = 0;
@@ -176,7 +185,7 @@ void robus_TourneGauche(float angle)
 
 void robus_Uturn()
 {
-  int32_t angle = 3725;
+  int32_t angle = 3715;
 
   MOTOR_SetSpeed(LEFT, 0);
   MOTOR_SetSpeed(RIGHT, 0);
@@ -345,9 +354,16 @@ void ConversionChemin(char path[],bool Aller_Retour)
           Action[compteur]='r';
           check = true;
         }
+        else if(path[debut] == 'u'|| path[debut] == 'U')
+        {
+          Serial.print("U turn : ");
+          Serial.println(value);
+          Action[compteur]='u';
+          check = true;
+        }
         else
         {
-          Serial.println("Erreur : ne commence pas par (a-A),(d-D),(g-G),(r-R)");
+          Serial.println("Erreur : ne commence pas par (a-A),(d-D),(g-G),(r-R),(u-U)");
         }
 
         if(check == true)
@@ -381,6 +397,7 @@ void ConversionChemin(char path[],bool Aller_Retour)
     valeur[pos2][2]='0';
     valeur[pos2][3]='\0';
     pos2++;
+
     for(int i = (pos2-2);i>=0;i--)
     {
       if(Action[i] == 'd')
@@ -406,8 +423,12 @@ void ConversionChemin(char path[],bool Aller_Retour)
       pos2++;
     }
   }
-  Action[pos2]='s';
-  Action[pos2+1] = '\0';
+  Action[pos2] = 'a';
+  valeur[pos2][0] = '1';
+  valeur[pos2][1] = '5';
+  valeur[pos2][2] = '\0';
+  Action[pos2+1]='s';
+  Action[pos2+2] = '\0';
 
   Serial.println("Fin conversion");
 
@@ -431,7 +452,8 @@ void setup()
   //d = Tourner à droit (en °)
   //g = Tourner à gauche (en °)
   //r = Reculer (en cm)
-  //Ne pas écrire le U turn dans la path
+  //u = Uturn
+  //Ne pas écrire le U turn dans la path si true
   //Terminer path par un /
   //82° pour 90°
   //41° pour 45°
@@ -448,12 +470,30 @@ Fonctions de boucle infini (loop())
 
 void loop() 
 {
-  // SOFT_TIMER_Update(); // A decommenter pour utiliser des compteurs logiciels
-  
+  /*
   if(ROBUS_IsBumper(3)==1)
   {
     delay(1000);
-    char path[] = "a 108/g 82/a 63.5/d 82/a 78/d 41/a 170/g 85/a 45/d 41/a 106/";
+    //char path[] = "a 216/g 82/a 82/d 77/a 23/d 84/a 37/g 80/a 83/d 82/a 29/g 82/a 112/u 0/a 112/d 82/a 27/g 82/a 83/d 80/a 37/g 84/a 23/g 77/a 82/d 87/a 216/";
+    //ConversionChemin(path,false);
+    char path[] = "a 216/g 82/a 82/d 77/a 23/d 84/a 37/g 80/a 83/d 82/a 29/g 82/a 112/";
     ConversionChemin(path,true);
   }
+  */
+  int red, green, blue;
+    GroveColorSensor colorSensor;
+    colorSensor.ledStatus = 1;            // When turn on the color sensor LED, ledStatus = 1; When turn off the color sensor LED, ledStatus = 0.
+    while(1)
+    {
+        colorSensor.readRGB(&red, &green, &blue);    //Read RGB values to variables.
+        delay(300);
+        Serial.print("The RGB value are: RGB( ");
+        Serial.print(red,DEC);
+        Serial.print(", ");
+        Serial.print(green,DEC);
+        Serial.print(", ");
+        Serial.print(blue,DEC);
+        Serial.println(" )");
+        colorSensor.clearInterrupt();
+    }
 }
