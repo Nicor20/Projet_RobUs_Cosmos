@@ -31,9 +31,11 @@ int departSifflet()
 
 void clignoterDEL (int numPin, int delai)
 {
+  
   //Mettre cette commande dans le set up absolument! (OUTPUT)
-  pinMode(numPin, OUTPUT); // on indique la nature de la PIN (sortie)
+  //pinMode(numPin, OUTPUT); // on indique la nature de la PIN (sortie)
   digitalWrite(numPin, HIGH);//Met la switch high
   delay(delai);
   digitalWrite(numPin, LOW);//Met la LED a low
+  
 }

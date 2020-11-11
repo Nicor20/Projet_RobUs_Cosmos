@@ -2,10 +2,9 @@
 #include "mouvement.h"
 #include "couleur.h"
 #include "siflet.h"
+#include "servo.h"
 
-#define ROUGE 31
-#define JAUNE 37
-#define BLEU 33
+
 
 #define NB_ACTION 45
 

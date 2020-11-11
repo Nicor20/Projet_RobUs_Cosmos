@@ -9,23 +9,23 @@ void ChoixChemin()
   if(couleur == 0)
   {
     //Jaune
-    clignoterDEL(JAUNE,2000);
+    clignoterDEL(JAUNE,1000);
     
-    char path[] = "a 135/c 00/a 20/c 00/a 62/d 90/a 23/o 00/";
+    char path[] = "a 120/c 00/a 82/d 90/a 23/o 00/";
     ConversionChemin(path,false);
   }
   else if(couleur == 1)
   {
     //Bleu
-    clignoterDEL(BLEU,2000);
-    char path[] = "a 135/c 00/a 20/c 00/a 142/g 90/a 23/o 00/";
+    clignoterDEL(BLEU,1000);
+    char path[] = "a 120/c 00/a 162/g 90/a 23/o 00/";
     ConversionChemin(path,false);
   }
   else if(couleur == 2)
   {
     //Rose
-    clignoterDEL(ROUGE,2000);
-    char path[] = "a 135/c 00/a 20/c 00/a 212/d 90/a 23/o 00/";
+    clignoterDEL(ROUGE,1000);
+    char path[] = "a 120/c 00/a 232/d 90/a 23/o 00/";
     ConversionChemin(path,false);
   }
   else
@@ -34,8 +34,6 @@ void ChoixChemin()
   }
 
 }
-
-
 
 //Fonction pour la lecture du chemin(Nico)
 void ConversionChemin(char path[],bool Aller_Retour)
@@ -248,12 +246,12 @@ void Chemin_Maker(char action[NB_ACTION],char mesure[NB_ACTION][15])
     else if(action[i]=='o')
     {
       //Ouverture de la pince
-
+      ServoOpen();
     }
     else if(action[i]=='c')
     {
       //Fermeture de la pince
-
+      ServoClose();
     }
     else if(action[i]=='l')
     {

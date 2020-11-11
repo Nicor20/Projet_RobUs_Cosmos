@@ -1,0 +1,23 @@
+#include "servo.h"
+
+void ServoStart()
+{
+    SERVO_Enable(SERVO_GAUCHE); // GAUCHE = 0,  DROITE = 1
+    SERVO_Enable(SERVO_DROIT);
+
+    SERVO_SetAngle(SERVO_GAUCHE, 90); // POSITION HAUTE (BALLE RELACHEE)
+    SERVO_SetAngle(SERVO_DROIT, 90); // POSITION HAUTE (BALLE RELACHEE)
+}
+
+void ServoOpen()
+{
+    SERVO_SetAngle(SERVO_GAUCHE, 90); // POSITION HAUTE (BALLE RELACHEE)
+    SERVO_SetAngle(SERVO_DROIT, 90); // POSITION HAUTE (BALLE RELACHEE)
+}
+
+void ServoClose()
+{
+    SERVO_SetAngle(SERVO_GAUCHE, 65); // POSITION BASSE (BALLE PRISE)
+    SERVO_SetAngle(SERVO_DROIT, 115); // POSITION BASSE (BALLE PRISE)
+    delay(1000);
+}

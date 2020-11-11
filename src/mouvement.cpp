@@ -87,7 +87,7 @@ void robus_Avance(float distance)
   float Vitesse = 0;
   float Vitesse_max = 1000;
   float h = pulse/2.0;
-  float diviseur = 20;
+  float diviseur = 20.0;
   float k = ((pulse/diviseur)>Vitesse_max ? Vitesse_max : pulse/diviseur);
   float a = -k/(h*h);
   float x;
@@ -103,6 +103,14 @@ void robus_Avance(float distance)
     x = distanceParcourue;
     Vitesse = a*((x-h)*(x-h))+k;
 
+    if(distanceParcourue < pulse/2)
+    {
+      Vitesse = Vitesse < 150 ? 150 : Vitesse;
+    }
+    else
+    {
+      Vitesse = Vitesse < 15 ? 15 : Vitesse;
+    }
     updateSpeed(Vitesse);
 
     Serial.println(Vitesse);
@@ -119,29 +127,42 @@ void robus_Avance(float distance)
 void robus_TourneGauche(float angle)
 {
   uint32_t angleParcouru = 0;
-  uint32_t pulse = conversionAnglePulse(angle);
+  uint32_t pulse = conversionAngleGauche(angle);
+  Serial.print("Pulse : ");
+  Serial.println(pulse);
 
   float Vitesse = 0;
   float Vitesse_max = 1000;
   float h = pulse/2.0;
-  float diviseur = 20;
+  float diviseur = 20.0;
   float k = ((pulse/diviseur)>Vitesse_max ? Vitesse_max : pulse/diviseur);
   float a = -k/(h*h);
   float x;
 
   ENCODER_Reset(RIGHT);
-  while(angleParcouru < angle)
+  ENCODER_Reset(LEFT);
+  while(angleParcouru < pulse)
   {
     x = angleParcouru;
     Vitesse = a*((x-h)*(x-h))+k;
 
-    MOTOR_SetSpeed(1, Vitesse/1000);
+    if(angleParcouru < pulse/2)
+    {
+      Vitesse = Vitesse/1000.0 < 0.1 ? 0.1 : Vitesse/1000.0;
+    }
+    else
+    {
+      Vitesse = Vitesse/1000.0 < 0.1 ? 0.1 : Vitesse/1000.0;
+    }
+    
+
+    MOTOR_SetSpeed(1,Vitesse);
     Serial.println(angleParcouru);
 
     encoderRead_Left = ENCODER_ReadReset(1);
     angleParcouru += encoderRead_Left;
 
-    delay(50);
+    delay(100);
   }
 
   MOTOR_SetSpeed(0,0);
@@ -153,23 +174,37 @@ void robus_TourneGauche(float angle)
 void robus_TourneDroite(float angle)
 {
   uint32_t angleParcouru = 0;
-  uint32_t pulse = conversionAnglePulse(angle);
+  uint32_t pulse = conversionAngleDroit(angle);
+  Serial.print("Pulse : ");
+  Serial.println(pulse);
 
   float Vitesse = 0;
   float Vitesse_max = 1000;
   float h = pulse/2.0;
-  float diviseur = 20;
-  float k = ((pulse/diviseur)>Vitesse_max ? Vitesse_max : pulse/diviseur);
-  float a = -k/(h*h);
+  float diviseur = 20.0;
+  float k = ((pulse/diviseur)> Vitesse_max ? Vitesse_max : pulse/diviseur);
+  float a = (-1*k)/(h*h);
   float x;
 
   ENCODER_Reset(LEFT);
+  ENCODER_Reset(RIGHT);
+
   while(angleParcouru < pulse)
   {
     x = angleParcouru;
+
     Vitesse = a*((x-h)*(x-h))+k;
 
-    MOTOR_SetSpeed(0, Vitesse/1000);
+    if(angleParcouru< pulse/2)
+    {
+      Vitesse = Vitesse/1000.0 <0.1 ? 0.1 : Vitesse/1000.0;
+    }
+    else
+    {
+      Vitesse = Vitesse/1000.0 < 0.1 ? 0.1 : Vitesse/1000.0;
+    }
+
+    MOTOR_SetSpeed(0, Vitesse);
     Serial.println(angleParcouru);
 
     encoderRead_Left = ENCODER_ReadReset(0);
@@ -221,9 +256,22 @@ uint32_t conversionDistancePulse(float centimetre)
 
 
 //Convertie un angle en pulse
-uint32_t conversionAnglePulse(float degre)
+uint32_t conversionAngleDroit(float degre)
 {
-  float rayon_tour = 17.78;//en cm
+  float rayon_tour = 18.5;//en cm
+  float circonference_tour = 2.0 * PI * rayon_tour;
+  float distance = (degre/360.0) * circonference_tour;
+
+  float diametre_roue = 7.62;
+  float circonference_roue = PI * diametre_roue;
+
+  int32_t pulse = ((distance/circonference_roue) * 3200);
+  return pulse;
+}
+
+uint32_t conversionAngleGauche(float degre)
+{
+  float rayon_tour = 18;//en cm
   float circonference_tour = 2.0 * PI * rayon_tour;
   float distance = (degre/360.0) * circonference_tour;
 

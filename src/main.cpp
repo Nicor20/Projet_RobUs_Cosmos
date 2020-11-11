@@ -10,6 +10,9 @@ Date: Derniere date de modification
 #include "chemin.h"
 #include "siflet.h"
 #include "couleur.h"
+#include "servo.h"
+
+
 
 
 void setup()
@@ -25,23 +28,49 @@ void setup()
   Serial.begin(9600);
 
   start();
+  ServoStart();
   delay(1000);
-  /*
-  pinMode(31, OUTPUT);
-  digitalWrite(31, LOW);
-  pinMode(33, OUTPUT);
-  digitalWrite(33, LOW);
-  pinMode(37, OUTPUT);
-  digitalWrite(37, LOW);
-  */
+  
+  pinMode(ROUGE, OUTPUT);
+  digitalWrite(ROUGE, LOW);
+  pinMode(BLEU, OUTPUT);
+  digitalWrite(BLEU, LOW);
+  pinMode(JAUNE, OUTPUT);
+  digitalWrite(JAUNE, LOW);
+  
   BoardInit();
 }
 
 void loop() 
 {
-  if(departSifflet()==1)
+  /*
+  if(ROBUS_IsBumper(3)==1)
   {
     delay(1000);
+    char path[] = "d 90/";
+    ConversionChemin(path,false);
+  }
+*/
+
+
+
+  if(departSifflet()==1)
+  {
+    clignoterDEL(JAUNE,500);
+    clignoterDEL(ROUGE,500);
+    clignoterDEL(BLEU,500);
+
+    clignoterDEL(JAUNE,500);
+    clignoterDEL(ROUGE,500);
+    clignoterDEL(BLEU,500);
+
+    clignoterDEL(JAUNE,500);
+    clignoterDEL(ROUGE,500);
+    clignoterDEL(BLEU,500);
+
+    clignoterDEL(JAUNE,500); 
+    //delay(3500);
+
     //Pour le robot balle
     // 1- Avance jusqu'a la ligne noir
     // 2- recule un peu
@@ -50,7 +79,8 @@ void loop()
     // 5- Se rend jusqu'a la couleur
     // 6- Scan la couleur
     // 7- Effectu le chemin selon la couleur scanner
-    char path[] = "a 90/l 00/";
+
+    char path[] = "g 90/a 85/l 00/";
     ConversionChemin(path,false);
   }
   else
