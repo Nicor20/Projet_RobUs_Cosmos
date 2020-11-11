@@ -258,7 +258,7 @@ uint32_t conversionDistancePulse(float centimetre)
 //Convertie un angle en pulse
 uint32_t conversionAngleDroit(float degre)
 {
-  float rayon_tour = 18.5;//en cm
+  float rayon_tour = 18.8;//en cm
   float circonference_tour = 2.0 * PI * rayon_tour;
   float distance = (degre/360.0) * circonference_tour;
 
@@ -271,7 +271,7 @@ uint32_t conversionAngleDroit(float degre)
 
 uint32_t conversionAngleGauche(float degre)
 {
-  float rayon_tour = 18;//en cm
+  float rayon_tour = 18.4;//en cm
   float circonference_tour = 2.0 * PI * rayon_tour;
   float distance = (degre/360.0) * circonference_tour;
 

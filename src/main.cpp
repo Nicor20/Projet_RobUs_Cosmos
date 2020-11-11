@@ -68,8 +68,7 @@ void loop()
     clignoterDEL(ROUGE,500);
     clignoterDEL(BLEU,500);
 
-    clignoterDEL(JAUNE,500); 
-    //delay(3500);
+    clignoterDEL(JAUNE,500);
 
     //Pour le robot balle
     // 1- Avance jusqu'a la ligne noir
@@ -80,7 +79,7 @@ void loop()
     // 6- Scan la couleur
     // 7- Effectu le chemin selon la couleur scanner
 
-    char path[] = "g 90/a 85/l 00/";
+    char path[] = "o 00/a 10/g 90/a 97/l 00/";
     ConversionChemin(path,false);
   }
   else

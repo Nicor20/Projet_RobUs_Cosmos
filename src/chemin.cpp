@@ -11,26 +11,31 @@ void ChoixChemin()
     //Jaune
     clignoterDEL(JAUNE,1000);
     
-    char path[] = "a 120/c 00/a 82/d 90/a 23/o 00/";
+    char path[] = "a 120/c 00/a 82/d 90/a 18/o 00/";
     ConversionChemin(path,false);
   }
   else if(couleur == 1)
   {
     //Bleu
     clignoterDEL(BLEU,1000);
-    char path[] = "a 120/c 00/a 162/g 90/a 23/o 00/";
+    char path[] = "a 120/c 00/a 159/g 90/a 18/o 00/";
     ConversionChemin(path,false);
   }
   else if(couleur == 2)
   {
     //Rose
     clignoterDEL(ROUGE,1000);
-    char path[] = "a 120/c 00/a 232/d 90/a 23/o 00/";
+    char path[] = "a 120/c 00/a 232/d 90/a 18/o 00/";
     ConversionChemin(path,false);
   }
   else
   {
-    
+    for(int i=0; i<20;i++)
+    {
+      clignoterDEL(JAUNE,100);
+      clignoterDEL(BLEU,100);
+      clignoterDEL(ROUGE,100);
+    }
   }
 
 }
